@@ -74,6 +74,7 @@ type Field struct {
 	Dv      string
 	V       string
 	Opts    string
+	Rect    *types.Rectangle
 }
 
 func (f Field) pageString() string {
@@ -695,6 +696,11 @@ func collectPageField(
 		locked = uint(primitives.FieldFlags(*ff))&uint(primitives.FieldReadOnly) > 0
 	}
 	f.Locked = locked
+
+	// Extract rectangle (position and dimensions)
+	if arr := d.ArrayEntry("Rect"); arr != nil {
+		f.Rect = types.RectForArray(arr)
+	}
 
 	ft := fi.ft
 	if ft == nil {
