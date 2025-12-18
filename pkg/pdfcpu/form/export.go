@@ -39,6 +39,14 @@ const (
 	OPTIONAL = false
 )
 
+// extractRect extracts the rectangle (position and dimensions) from a form field dict.
+func extractRect(d types.Dict) *types.Rectangle {
+	if arr := d.ArrayEntry("Rect"); arr != nil {
+		return types.RectForArray(arr)
+	}
+	return nil
+}
+
 // Header represents form meta data.
 type Header struct {
 	Source   string   `json:"source"`
@@ -55,76 +63,82 @@ type Header struct {
 
 // TextField represents a form text field.
 type TextField struct {
-	Pages     []int  `json:"pages"`
-	ID        string `json:"id"`
-	Name      string `json:"name,omitempty"`
-	AltName   string `json:"altname,omitempty"`
-	Default   string `json:"default,omitempty"`
-	Value     string `json:"value"`
-	MaxLen    int    `json:"maxlen,omitempty"`
-	Multiline bool   `json:"multiline"`
-	Locked    bool   `json:"locked"`
+	Pages     []int            `json:"pages"`
+	ID        string           `json:"id"`
+	Name      string           `json:"name,omitempty"`
+	AltName   string           `json:"altname,omitempty"`
+	Default   string           `json:"default,omitempty"`
+	Value     string           `json:"value"`
+	MaxLen    int              `json:"maxlen,omitempty"`
+	Multiline bool             `json:"multiline"`
+	Locked    bool             `json:"locked"`
+	Rect      *types.Rectangle `json:"rect,omitempty"`
 }
 
 // DateField represents an Acroform date field.
 type DateField struct {
-	Pages   []int  `json:"pages"`
-	ID      string `json:"id"`
-	Name    string `json:"name,omitempty"`
-	AltName string `json:"altname,omitempty"`
-	Format  string `json:"format"`
-	Default string `json:"default,omitempty"`
-	Value   string `json:"value"`
-	Locked  bool   `json:"locked"`
+	Pages   []int            `json:"pages"`
+	ID      string           `json:"id"`
+	Name    string           `json:"name,omitempty"`
+	AltName string           `json:"altname,omitempty"`
+	Format  string           `json:"format"`
+	Default string           `json:"default,omitempty"`
+	Value   string           `json:"value"`
+	Locked  bool             `json:"locked"`
+	Rect    *types.Rectangle `json:"rect,omitempty"`
 }
 
 // RadioButtonGroup represents a form checkbox.
 type CheckBox struct {
-	Pages   []int  `json:"pages"`
-	ID      string `json:"id"`
-	Name    string `json:"name,omitempty"`
-	AltName string `json:"altname,omitempty"`
-	Default bool   `json:"default"`
-	Value   bool   `json:"value"`
-	Locked  bool   `json:"locked"`
+	Pages   []int            `json:"pages"`
+	ID      string           `json:"id"`
+	Name    string           `json:"name,omitempty"`
+	AltName string           `json:"altname,omitempty"`
+	Default bool             `json:"default"`
+	Value   bool             `json:"value"`
+	Locked  bool             `json:"locked"`
+	Rect    *types.Rectangle `json:"rect,omitempty"`
 }
 
 // RadioButtonGroup represents a form radio button group.
 type RadioButtonGroup struct {
-	Pages   []int    `json:"pages"`
-	ID      string   `json:"id"`
-	Name    string   `json:"name,omitempty"`
-	AltName string   `json:"altname,omitempty"`
-	Options []string `json:"options"`
-	Default string   `json:"default,omitempty"`
-	Value   string   `json:"value"`
-	Locked  bool     `json:"locked"`
+	Pages   []int            `json:"pages"`
+	ID      string           `json:"id"`
+	Name    string           `json:"name,omitempty"`
+	AltName string           `json:"altname,omitempty"`
+	Options []string         `json:"options"`
+	Default string           `json:"default,omitempty"`
+	Value   string           `json:"value"`
+	Locked  bool             `json:"locked"`
+	Rect    *types.Rectangle `json:"rect,omitempty"`
 }
 
 // ComboBox represents a form combobox.
 type ComboBox struct {
-	Pages    []int    `json:"pages"`
-	ID       string   `json:"id"`
-	Name     string   `json:"name,omitempty"`
-	AltName  string   `json:"altname,omitempty"`
-	Editable bool     `json:"editable"`
-	Options  []string `json:"options"`
-	Default  string   `json:"default,omitempty"`
-	Value    string   `json:"value"`
-	Locked   bool     `json:"locked"`
+	Pages    []int            `json:"pages"`
+	ID       string           `json:"id"`
+	Name     string           `json:"name,omitempty"`
+	AltName  string           `json:"altname,omitempty"`
+	Editable bool             `json:"editable"`
+	Options  []string         `json:"options"`
+	Default  string           `json:"default,omitempty"`
+	Value    string           `json:"value"`
+	Locked   bool             `json:"locked"`
+	Rect     *types.Rectangle `json:"rect,omitempty"`
 }
 
 // ListBox represents a form listbox.
 type ListBox struct {
-	Pages    []int    `json:"pages"`
-	ID       string   `json:"id"`
-	Name     string   `json:"name,omitempty"`
-	AltName  string   `json:"altname,omitempty"`
-	Multi    bool     `json:"multi"`
-	Options  []string `json:"options"`
-	Defaults []string `json:"defaults,omitempty"`
-	Values   []string `json:"values,omitempty"`
-	Locked   bool     `json:"locked"`
+	Pages    []int            `json:"pages"`
+	ID       string           `json:"id"`
+	Name     string           `json:"name,omitempty"`
+	AltName  string           `json:"altname,omitempty"`
+	Multi    bool             `json:"multi"`
+	Options  []string         `json:"options"`
+	Defaults []string         `json:"defaults,omitempty"`
+	Values   []string         `json:"values,omitempty"`
+	Locked   bool             `json:"locked"`
+	Rect     *types.Rectangle `json:"rect,omitempty"`
 }
 
 // Page is a container for page imageboxes.
@@ -306,9 +320,9 @@ func resolveOption(s string, opts []string, explicit bool) (string, error) {
 	return n, nil
 }
 
-func extractRadioButtonGroup(xRefTable *model.XRefTable, page int, d types.Dict, id, name, altName string, locked bool) (*RadioButtonGroup, error) {
+func extractRadioButtonGroup(xRefTable *model.XRefTable, page int, d types.Dict, id, name, altName string, locked bool, rect *types.Rectangle) (*RadioButtonGroup, error) {
 
-	rbg := &RadioButtonGroup{Pages: []int{page}, ID: id, Name: name, AltName: altName, Locked: locked}
+	rbg := &RadioButtonGroup{Pages: []int{page}, ID: id, Name: name, AltName: altName, Locked: locked, Rect: rect}
 
 	opts, explicit, err := extractRadioButtonGroupOptions(xRefTable, d)
 	if err != nil {
@@ -338,9 +352,9 @@ func extractRadioButtonGroup(xRefTable *model.XRefTable, page int, d types.Dict,
 	return rbg, nil
 }
 
-func extractCheckBox(page int, d types.Dict, id, name, altName string, locked bool) (*CheckBox, error) {
+func extractCheckBox(page int, d types.Dict, id, name, altName string, locked bool, rect *types.Rectangle) (*CheckBox, error) {
 
-	cb := &CheckBox{Pages: []int{page}, ID: id, Name: name, AltName: altName, Locked: locked}
+	cb := &CheckBox{Pages: []int{page}, ID: id, Name: name, AltName: altName, Locked: locked, Rect: rect}
 
 	if o, ok := d.Find("DV"); ok {
 		cb.Default = o.(types.Name) != "Off"
@@ -354,9 +368,9 @@ func extractCheckBox(page int, d types.Dict, id, name, altName string, locked bo
 	return cb, nil
 }
 
-func extractComboBox(xRefTable *model.XRefTable, page int, d types.Dict, id, name, altName string, locked bool) (*ComboBox, error) {
+func extractComboBox(xRefTable *model.XRefTable, page int, d types.Dict, id, name, altName string, locked bool, rect *types.Rectangle) (*ComboBox, error) {
 
-	cb := &ComboBox{Pages: []int{page}, ID: id, Name: name, AltName: altName, Locked: locked}
+	cb := &ComboBox{Pages: []int{page}, ID: id, Name: name, AltName: altName, Locked: locked, Rect: rect}
 
 	if sl := d.StringLiteralEntry("DV"); sl != nil {
 		s, err := types.StringLiteralToString(*sl)
@@ -453,9 +467,9 @@ func extractDateFormat(xRefTable *model.XRefTable, d types.Dict) (*primitives.Da
 	return nil, nil
 }
 
-func extractDateField(xRefTable *model.XRefTable, page int, d types.Dict, id, name, altName string, df *primitives.DateFormat, locked bool) (*DateField, error) {
+func extractDateField(xRefTable *model.XRefTable, page int, d types.Dict, id, name, altName string, df *primitives.DateFormat, locked bool, rect *types.Rectangle) (*DateField, error) {
 
-	dfield := &DateField{Pages: []int{page}, ID: id, Name: name, AltName: altName, Format: df.Ext, Locked: locked}
+	dfield := &DateField{Pages: []int{page}, ID: id, Name: name, AltName: altName, Format: df.Ext, Locked: locked, Rect: rect}
 
 	v, err := getV(xRefTable, d)
 	if err != nil {
@@ -472,7 +486,7 @@ func extractDateField(xRefTable *model.XRefTable, page int, d types.Dict, id, na
 	return dfield, nil
 }
 
-func extractTextField(xRefTable *model.XRefTable, page int, d types.Dict, id, name, altName string, ff *int, locked bool) (*TextField, error) {
+func extractTextField(xRefTable *model.XRefTable, page int, d types.Dict, id, name, altName string, ff *int, locked bool, rect *types.Rectangle) (*TextField, error) {
 
 	multiLine := ff != nil && uint(primitives.FieldFlags(*ff))&uint(primitives.FieldMultiline) > 0
 
@@ -482,7 +496,7 @@ func extractTextField(xRefTable *model.XRefTable, page int, d types.Dict, id, na
 		maxLen = *i
 	}
 
-	tf := &TextField{Pages: []int{page}, ID: id, Name: name, AltName: altName, Multiline: multiLine, MaxLen: maxLen, Locked: locked}
+	tf := &TextField{Pages: []int{page}, ID: id, Name: name, AltName: altName, Multiline: multiLine, MaxLen: maxLen, Locked: locked, Rect: rect}
 
 	v, err := getV(xRefTable, d)
 	if err != nil {
@@ -499,9 +513,9 @@ func extractTextField(xRefTable *model.XRefTable, page int, d types.Dict, id, na
 	return tf, nil
 }
 
-func extractListBox(xRefTable *model.XRefTable, page int, d types.Dict, id, name, altName string, locked, multi bool) (*ListBox, error) {
+func extractListBox(xRefTable *model.XRefTable, page int, d types.Dict, id, name, altName string, locked, multi bool, rect *types.Rectangle) (*ListBox, error) {
 
-	lb := &ListBox{Pages: []int{page}, ID: id, Name: name, AltName: altName, Locked: locked, Multi: multi}
+	lb := &ListBox{Pages: []int{page}, ID: id, Name: name, AltName: altName, Locked: locked, Multi: multi, Rect: rect}
 
 	if !multi {
 		if sl := d.StringLiteralEntry("DV"); sl != nil {
@@ -604,7 +618,7 @@ func exportBtn(
 			}
 		}
 
-		rbg, err := extractRadioButtonGroup(xRefTable, i, d, id, name, altName, locked)
+		rbg, err := extractRadioButtonGroup(xRefTable, i, d, id, name, altName, locked, extractRect(d))
 		if err != nil {
 			return err
 		}
@@ -621,7 +635,7 @@ func exportBtn(
 		}
 	}
 
-	cb, err := extractCheckBox(i, d, id, name, altName, locked)
+	cb, err := extractCheckBox(i, d, id, name, altName, locked, extractRect(d))
 	if err != nil {
 		return err
 	}
@@ -651,7 +665,7 @@ func exportCh(
 			}
 		}
 
-		cb, err := extractComboBox(xRefTable, i, d, id, name, altName, locked)
+		cb, err := extractComboBox(xRefTable, i, d, id, name, altName, locked, extractRect(d))
 		if err != nil {
 			return err
 		}
@@ -668,7 +682,7 @@ func exportCh(
 	}
 
 	multi := ff != nil && primitives.FieldFlags(*ff)&primitives.FieldMultiselect > 0
-	lb, err := extractListBox(xRefTable, i, d, id, name, altName, locked, multi)
+	lb, err := extractListBox(xRefTable, i, d, id, name, altName, locked, multi, extractRect(d))
 	if err != nil {
 		return err
 	}
@@ -702,7 +716,7 @@ func exportTx(
 			}
 		}
 
-		df, err := extractDateField(xRefTable, i, d, id, name, altName, df, locked)
+		df, err := extractDateField(xRefTable, i, d, id, name, altName, df, locked, extractRect(d))
 		if err != nil {
 			return err
 		}
@@ -719,7 +733,7 @@ func exportTx(
 		}
 	}
 
-	tf, err := extractTextField(xRefTable, i, d, id, name, altName, ff, locked)
+	tf, err := extractTextField(xRefTable, i, d, id, name, altName, ff, locked, extractRect(d))
 	if err != nil {
 		return err
 	}
