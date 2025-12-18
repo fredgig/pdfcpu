@@ -63,6 +63,26 @@ func FormFields(rs io.ReadSeeker, conf *model.Configuration) ([]form.Field, erro
 	return fields, err
 }
 
+// GetFormField returns a form field by its ID or name from rs.
+// Returns nil if no field with the given ID or name is found.
+func GetFormField(rs io.ReadSeeker, idOrName string, conf *model.Configuration) (*form.Field, error) {
+	if rs == nil {
+		return nil, errors.New("pdfcpu: GetFormField: missing rs")
+	}
+
+	if conf == nil {
+		conf = model.NewDefaultConfiguration()
+	}
+	conf.Cmd = model.LISTFORMFIELDS
+
+	ctx, err := ReadValidateAndOptimize(rs, conf)
+	if err != nil {
+		return nil, err
+	}
+
+	return form.GetFormField(ctx, idOrName)
+}
+
 // RemoveFormFields deletes form fields in rs and writes the result to w.
 func RemoveFormFields(rs io.ReadSeeker, w io.Writer, fieldIDsOrNames []string, conf *model.Configuration) error {
 	if rs == nil {
