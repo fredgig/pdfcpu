@@ -1059,6 +1059,23 @@ func ListFormFields(ctx *model.Context) ([]string, error) {
 	return renderFields(ctx, fs, fm)
 }
 
+// GetFormField returns a form field by its ID or name.
+// Returns nil if no field with the given ID or name is found.
+func GetFormField(ctx *model.Context, idOrName string) (*Field, error) {
+	fs, _, err := FormFields(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range fs {
+		if fs[i].ID == idOrName || fs[i].Name == idOrName {
+			return &fs[i], nil
+		}
+	}
+
+	return nil, nil
+}
+
 func annotIndRefs(xRefTable *model.XRefTable, fields types.Array) ([]types.IndirectRef, error) {
 	var indRefs []types.IndirectRef
 	for _, v := range fields {
